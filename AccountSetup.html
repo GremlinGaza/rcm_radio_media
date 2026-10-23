@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Initial Editor Setup – RCM Media{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1>Set Up the Newsroom</h1>
+        <p>Create the first editor account. This setup page closes after the account is created.</p>
+    </div>
+</section>
+
+<section class="form-section">
+    <form class="content-form" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label for="username">Editor username</label>
+        <input id="username" name="username" type="text" minlength="3" maxlength="64"
+               pattern="[A-Za-z0-9_.@-]{3,64}" autocomplete="username" required>
+
+        <label for="password">Password (at least 12 characters)</label>
+        <input id="password" name="password" type="password" minlength="12" maxlength="1024"
+               autocomplete="new-password" required>
+
+        <label for="password_confirmation">Confirm password</label>
+        <input id="password_confirmation" name="password_confirmation" type="password" maxlength="1024"
+               minlength="12" autocomplete="new-password" required>
+
+        <button class="btn btn-primary" type="submit">Create Editor Account</button>
+    </form>
+</section>
+{% endblock %}

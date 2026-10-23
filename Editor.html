@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Editorial Desk – RCM Media{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1>Editorial Desk</h1>
+        <p>Review drafts and publish approved reports.</p>
+    </div>
+</section>
+
+<section class="news-section">
+    <div class="container">
+        <div class="page-actions editor-actions">
+            <a href="{{ url_for('journalist_submit') }}" class="btn btn-primary">Write a Report</a>
+            <a href="{{ url_for('news') }}" class="btn btn-secondary">View Published News</a>
+            <a href="{{ url_for('manage_accounts') }}" class="btn btn-secondary">Manage Accounts</a>
+        </div>
+        {% if articles %}
+            <div class="article-grid">
+                {% for article in articles %}
+                    <article class="article-card">
+                        <p class="article-date">{{ article.reported_date }} · {{ article.status|title }}</p>
+                        <h2>{{ article.headline }}</h2>
+                        {% if article.program_title %}
+                            <p class="article-program">{{ article.program_title }}</p>
+                        {% endif %}
+                        <p class="article-body">{{ article.body }}</p>
+                        {% if article.source_url %}
+                            <p><a href="{{ article.source_url }}" target="_blank" rel="noopener noreferrer">View report source</a></p>
+                        {% endif %}
+                        <p class="article-byline">By {{ article.author }} · Submitted {{ article.submitted_at }}</p>
+                        {% if article.status == 'draft' %}
+                            <form action="{{ url_for('publish_article', article_id=article.id) }}" method="post">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <button class="btn btn-primary" type="submit">Approve &amp; Publish</button>
+                            </form>
+                        {% endif %}
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="loading">No reports have been submitted yet.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

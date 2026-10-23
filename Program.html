@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}RCM Radio Programming{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-radio"></i> RCM Radio Programming</h1>
+        <p>Explore RCM Radio's live broadcast and programming focus</p>
+    </div>
+</section>
+
+<section class="programs-section">
+    <div class="container">
+        <p class="program-source-note">
+            Based on RCM Radio's public
+            <a href="{{ facebook_page_url }}" target="_blank" rel="noopener noreferrer">Facebook page</a>.
+            The page does not list named shows or a broadcast schedule.
+        </p>
+        <div class="program-discovery">
+            <label class="program-search">
+                <span class="visually-hidden">Search RCM Radio programming</span>
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <input id="program-search" type="search" placeholder="Search programming…" autocomplete="off">
+            </label>
+            <div class="filters" role="group" aria-label="Filter programming">
+                <button class="filter-btn active" type="button" data-filter="all" aria-pressed="true">All</button>
+                <button class="filter-btn" type="button" data-filter="live" aria-pressed="false">Facebook broadcast</button>
+                <button class="filter-btn" type="button" data-filter="news" aria-pressed="false">News</button>
+                <button class="filter-btn" type="button" data-filter="trending" aria-pressed="false">Trending</button>
+                <button class="filter-btn" type="button" data-filter="business" aria-pressed="false">Business</button>
+                <button class="filter-btn" type="button" data-filter="music" aria-pressed="false">Music</button>
+            </div>
+        </div>
+
+        <p id="program-results" class="program-results" aria-live="polite">Loading programming…</p>
+        <div id="all-programs" class="programs-grid" aria-live="polite">
+            <div class="loading">Loading programs...</div>
+        </div>
+        <div class="platform-callout">
+            <h2>Follow RCM Radio</h2>
+            <p>Visit the official page for current live broadcasts and updates.</p>
+            <a href="{{ facebook_page_url }}" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-facebook" aria-hidden="true"></i> Open RCM Radio on Facebook
+            </a>
+        </div>
+        <div class="page-actions">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Visit the Blog</a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">See Live Shows</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadAllPrograms();
+        setupFilters();
+        setupProgramSearch();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Journalist Sign In – RCM Media{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1>Journalist &amp; Editor Sign In</h1>
+        <p>Sign in with your assigned account. Journalist credentials open report submission; editor credentials open the review desk and publishing tools.</p>
+    </div>
+</section>
+
+<section class="form-section">
+    <form class="content-form" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        {% if not accounts_exist %}
+            <p class="form-notice error">
+                No accounts exist yet. Create the first editor account to set up
+                the newsroom.
+            </p>
+            <a class="btn btn-primary" href="{{ url_for('initial_setup') }}">Create First Editor Account</a>
+        {% endif %}
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text" maxlength="64" autocomplete="username" required>
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" maxlength="1024" autocomplete="current-password" required>
+        <button class="btn btn-primary" type="submit">Sign In</button>
+    </form>
+</section>
+{% endblock %}

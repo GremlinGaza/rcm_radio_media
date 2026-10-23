@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}RCM News &amp; Reports – RCM Media{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-newspaper"></i> RCM News &amp; Reports</h1>
+        <p>Reports and headlines reviewed by RCM Media in Nairobi, Kenya.</p>
+    </div>
+</section>
+
+<section class="news-section">
+    <div class="container">
+        {% if articles %}
+            <div class="article-grid">
+                {% for article in articles %}
+                    <article class="article-card">
+                        <p class="article-date">{{ article.reported_date }}</p>
+                        <h2>{{ article.headline }}</h2>
+                        {% if article.program_title %}
+                            <p class="article-program"><i class="fas fa-microphone"></i> {{ article.program_title }}</p>
+                        {% endif %}
+                        <p class="article-body">{{ article.body }}</p>
+                        {% if article.source_url %}
+                            <p><a href="{{ article.source_url }}" target="_blank" rel="noopener noreferrer">View report source</a></p>
+                        {% endif %}
+                        <p class="article-byline">Reported by {{ article.author }}</p>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="loading">No reports have been published yet. Approved reports will appear here.</p>
+        {% endif %}
+        <div class="page-actions">
+            {% if user_role %}
+                <a href="{{ url_for('journalist_submit') }}" class="btn btn-primary">Submit a Report</a>
+            {% else %}
+                <a href="{{ url_for('journalist_login') }}" class="btn btn-primary">Journalist Sign In</a>
+            {% endif %}
+            <a href="{{ url_for('programs') }}" class="btn btn-secondary">Browse Programs</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

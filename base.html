@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}RCM Radio Media Blog{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('stylesheet') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body data-youtube-channel="{{ youtube_channel_url }}" data-youtube-channel-id="{{ youtube_channel_id }}" data-facebook-page="{{ facebook_page_url }}">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="logo">
+                <img src="{{ url_for('brand_logo') }}" alt="RCM Radio Media Channel" width="180" height="78">
+            </a>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}" class="nav-button {% if request.endpoint == 'index' %}active{% endif %}">Blog</a></li>
+                <li><a href="{{ url_for('dashboard') }}" class="nav-button {% if request.endpoint == 'dashboard' %}active{% endif %}">Shows</a></li>
+                <li><a href="{{ url_for('programs') }}" class="nav-button {% if request.endpoint == 'programs' %}active{% endif %}">Programs</a></li>
+                <li><a href="{{ url_for('news') }}" class="nav-button {% if request.endpoint == 'news' %}active{% endif %}">News</a></li>
+            </ul>
+            <div class="live-indicator" id="nav-live">
+                <span class="pulse"></span> LIVE
+            </div>
+        </div>
+        <div class="journalist-nav">
+            {% if user_role %}
+                <a href="{{ url_for('journalist_submit') }}">Submit a report</a>
+                {% if user_role == 'editor' %}
+                    <a href="{{ url_for('editor') }}">Editor desk</a>
+                    <a href="{{ url_for('manage_accounts') }}">Manage accounts</a>
+                {% endif %}
+                <form action="{{ url_for('journalist_logout') }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit">Sign out</button>
+                </form>
+            {% else %}
+                <a href="{{ url_for('journalist_login') }}">Journalist sign in</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages container" role="status">
+                    {% for category, message in messages %}
+                        <p class="flash-message {{ category }}">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 RCM Radio Media Blog. All rights reserved.</p>
+            <p>Broadcasting Blog, News and inspiration 24/7</p>
+            <nav class="footer-links" aria-label="Footer navigation">
+                <a href="{{ url_for('index') }}">Blog</a>
+                <a href="{{ url_for('dashboard') }}">Shows</a>
+                <a href="{{ url_for('programs') }}">Programs</a>
+                <a href="{{ url_for('news') }}">News</a>
+            </nav>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('javascript') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

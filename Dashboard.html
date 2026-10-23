@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Live Dashboard – RCM Radio{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1><i class="fas fa-broadcast-tower"></i> Live On Air Dashboard</h1>
+        <p>What is playing right now and what is coming up</p>
+    </div>
+</section>
+
+<section class="channel-player-section">
+    <div class="container">
+        <div class="section-heading">
+            <div>
+                <h2><i class="fas fa-radio"></i> RCM Media YouTube Channel</h2>
+                <p>This video player is for RCM Media. Follow RCM Radio's Facebook page for radio broadcasts and program updates.</p>
+            </div>
+            <a href="{{ youtube_channel_url }}/live" class="btn btn-youtube" target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-youtube"></i> Open RCM Media on YouTube
+            </a>
+            <a href="{{ facebook_live_url }}" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-facebook"></i> Open broadcast on Facebook
+            </a>
+        </div>
+
+        <div class="player-mode-controls" role="group" aria-label="Player mode">
+            <button class="filter-btn active" type="button" data-player-mode="live" aria-pressed="true">
+                <i class="fas fa-circle"></i> Live broadcast
+            </button>
+            <button class="filter-btn" type="button" data-player-mode="videos" aria-pressed="false">
+                <i class="fas fa-list-ol"></i> Program video sequence
+            </button>
+        </div>
+
+        <div class="channel-player-layout">
+            <div class="channel-player">
+                <iframe
+                    id="channel-player-frame"
+                    src="https://www.youtube.com/embed/live_stream?channel={{ youtube_channel_id }}"
+                    title="RCM Radio Media live YouTube broadcast"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allowfullscreen>
+                </iframe>
+                <div class="player-now-playing">
+                    <span class="live-badge" id="player-live-badge">LIVE</span>
+                    <h3 id="player-video-title">RCM Radio Media live broadcast</h3>
+                    <p id="player-video-details">The YouTube player includes its own video and audio controls.</p>
+                </div>
+                <div class="player-controls" id="playlist-controls" hidden>
+                    <button class="filter-btn" type="button" data-video-step="-1" aria-label="Play previous video">
+                        <i class="fas fa-backward-step"></i> Previous
+                    </button>
+                    <button class="filter-btn" type="button" data-video-step="1" aria-label="Play next video">
+                        Next <i class="fas fa-forward-step"></i>
+                    </button>
+                </div>
+                <p class="player-status" id="player-status" aria-live="polite">
+                    If the channel is not currently broadcasting, choose a video from the sequence.
+                </p>
+            </div>
+
+            <aside class="channel-queue">
+                <h3>Channel sequence</h3>
+                <p>Recent channel videos rotate across detected show series, newest first within each series.</p>
+                <ol id="channel-video-queue" aria-label="RCM Media video sequence">
+                    <li class="loading">Loading channel videos…</li>
+                </ol>
+            </aside>
+        </div>
+    </div>
+</section>
+
+<section class="dashboard-section">
+    <div class="container">
+        <!-- Current Live -->
+        <div class="live-panel">
+            <h2><span class="live-badge">RCM RADIO BROADCAST</span></h2>
+            <div id="live-now" class="program-card large">
+                <div class="loading">Loading current show...</div>
+            </div>
+            <p class="platform-note">Follow RCM Media in Nairobi, Kenya, for show videos and updates.</p>
+            <a href="{{ youtube_channel_url }}" class="btn btn-youtube" target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-youtube"></i> Visit RCM Media on YouTube
+            </a>
+        </div>
+
+        <!-- Upcoming -->
+        <div class="upcoming-panel">
+            <h2><i class="fas fa-compass"></i> RCM Radio Programming Focus</h2>
+            <p class="program-source-note">
+                RCM Radio describes its content as news, trending stories, business insights and hit music.
+                A show timetable is not listed on the public page.
+            </p>
+            <div id="program-focus" class="programs-grid">
+                <div class="loading">Loading programming information...</div>
+            </div>
+        </div>
+        <div class="page-actions">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Visit the Blog</a>
+            <a href="{{ url_for('programs') }}" class="btn btn-secondary">Browse All Programs</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadLiveProgram('live-now');
+        loadProgramFocus();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}RCM Radio – Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <h1>Welcome to <span>RCM Radio</span></h1>
+        <p class="subtitle">Your home for all kinds of music, inspiring talk shows and live Tuning on air</p>
+        <div class="hero-buttons">
+            <a href="/dashboard" class="btn btn-primary">
+                <i class="fas fa-play-circle"></i> Listen Live Now
+            </a>
+            <a href="/programs" class="btn btn-secondary">
+                <i class="fas fa-list"></i> Browse Programs
+            </a>
+            <a href="{{ youtube_channel_url }}" class="btn btn-youtube" target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-youtube"></i> RCM Media on YouTube
+            </a>
+        </div>
+        <p class="channel-location">RCM Media · Nairobi, Kenya</p>
+    </div>
+</section>
+
+<!-- How to Navigate -->
+<section class="guide-section">
+    <div class="container">
+        <h2><i class="fas fa-compass"></i> How to Navigate RCM Radio</h2>
+        <div class="guide-grid">
+            <div class="guide-card">
+                <div class="guide-icon"><i class="fas fa-home"></i></div>
+                <h3>1. Home (Landing)</h3>
+                <p>Start here. See the big welcome message and quick buttons to go live or browse shows.</p>
+            </div>
+            <div class="guide-card">
+                <div class="guide-icon"><i class="fas fa-broadcast-tower"></i></div>
+                <h3>2. Live Dashboard</h3>
+                <p>See what is currently on air, the host, and what is coming up next. Perfect for real-time listening.</p>
+            </div>
+            <div class="guide-card">
+                <div class="guide-icon"><i class="fas fa-headphones"></i></div>
+                <h3>3. All Programs</h3>
+                <p>Browse every show – live, upcoming and recorded. Filter by category or status.</p>
+            </div>
+            <div class="guide-card">
+                <div class="guide-icon"><i class="fas fa-info-circle"></i></div>
+                <h3>4. Look for the LIVE badge</h3>
+                <p>The red pulsing “LIVE” indicator in the top right always shows when something is broadcasting right now.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Live Preview -->
+<section class="featured-section">
+    <div class="container">
+        <h2>Currently On Air</h2>
+        <div id="home-live-card" class="program-card large">
+            <!-- Filled by JavaScript -->
+            <div class="loading">Loading live show...</div>
+        </div>
+        <div class="page-actions">
+            <a href="{{ youtube_channel_url }}" class="btn btn-youtube" target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-youtube"></i> Visit the RCM Media YouTube channel
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="news-section">
+    <div class="container">
+        <div class="section-heading">
+            <div>
+                <h2>RCM News &amp; Reports</h2>
+                <p>Headlines and reports reviewed by the RCM editorial team.</p>
+            </div>
+            <a href="{{ url_for('news') }}" class="btn btn-secondary">All News</a>
+        </div>
+        {% if articles %}
+            <div class="article-grid">
+                {% for article in articles[:3] %}
+                    <article class="article-card">
+                        <p class="article-date">{{ article.reported_date }}</p>
+                        <h3>{{ article.headline }}</h3>
+                        <p>{{ article.body[:240] }}{% if article.body|length > 240 %}…{% endif %}</p>
+                        {% if article.source_url %}
+                            <p><a href="{{ article.source_url }}" target="_blank" rel="noopener noreferrer">View report source</a></p>
+                        {% endif %}
+                        <p class="article-byline">By {{ article.author }}{% if article.program_title %} · {{ article.program_title }}{% endif %}</p>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="loading">There are no published reports yet.</p>
+        {% endif %}
+        <div class="page-actions">
+            {% if user_role %}
+                <a href="{{ url_for('journalist_submit') }}" class="btn btn-primary">Submit a Report</a>
+            {% else %}
+                <a href="{{ url_for('journalist_login') }}" class="btn btn-primary">Journalist Sign In</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<section class="youtube-section">
+    <div class="container">
+        <h2>Latest RCM Media Videos</h2>
+        <p class="platform-note">Recent videos from the official channel, with upload dates and matching show titles where available.</p>
+        <div class="video-grid" data-youtube-videos aria-live="polite">
+            <p class="loading">Loading videos from YouTube…</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Load live program on home page
+    document.addEventListener('DOMContentLoaded', () => {
+        loadLiveProgram('home-live-card');
+    });
+</script>
+{% endblock %}

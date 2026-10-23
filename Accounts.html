@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Manage Accounts – RCM Media{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1>Manage Journalist &amp; Editor Accounts</h1>
+        <p>Create accounts, change roles, reset passwords, or deactivate access.</p>
+    </div>
+</section>
+
+<section class="form-section">
+    <div class="container">
+        <form class="content-form account-create-form" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <h2>Create Account</h2>
+
+            <label for="new-username">Username</label>
+            <input id="new-username" name="username" type="text" minlength="3" maxlength="64"
+                   pattern="[A-Za-z0-9_.@-]{3,64}" autocomplete="off" required>
+
+            <label for="new-role">Role</label>
+            <select id="new-role" name="role" required>
+                <option value="journalist">Journalist — submit reports</option>
+                <option value="editor">Editor — manage accounts and publish reports</option>
+            </select>
+
+            <label for="new-password">Initial password (at least 12 characters)</label>
+            <input id="new-password" name="password" type="password" minlength="12" maxlength="1024"
+                   autocomplete="new-password" required>
+
+            <button class="btn btn-primary" type="submit">Create Account</button>
+        </form>
+
+        <div class="account-list">
+            <h2>Existing Accounts</h2>
+            {% for account in accounts %}
+                <form class="content-form account-form" method="post"
+                      action="{{ url_for('update_account', account_id=account.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <h3>{{ account.username }}</h3>
+                    <p>Created {{ account.created_at }} · {{ "Active" if account.active else "Deactivated" }}</p>
+
+                    <label for="username-{{ account.id }}">Username</label>
+                    <input id="username-{{ account.id }}" name="username" type="text"
+                           minlength="3" maxlength="64" pattern="[A-Za-z0-9_.@-]{3,64}"
+                           value="{{ account.username }}" required>
+
+                    <label for="role-{{ account.id }}">Role</label>
+                    <select id="role-{{ account.id }}" name="role" required>
+                        <option value="journalist" {% if account.role == "journalist" %}selected{% endif %}>Journalist</option>
+                        <option value="editor" {% if account.role == "editor" %}selected{% endif %}>Editor</option>
+                    </select>
+
+                    <label for="password-{{ account.id }}">Reset password (leave blank to keep current)</label>
+                    <input id="password-{{ account.id }}" name="password" type="password"
+                           minlength="12" maxlength="1024" autocomplete="new-password">
+
+                    <label class="account-active">
+                        <input name="active" type="checkbox" {% if account.active %}checked{% endif %}>
+                        Account active
+                    </label>
+
+                    <button class="btn btn-primary" type="submit">Save Account Changes</button>
+                </form>
+            {% else %}
+                <p class="loading">No accounts exist.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

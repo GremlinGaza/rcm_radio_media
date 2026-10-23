@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Submit a Report – RCM Media{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1>Submit a News Report</h1>
+        <p>Reports are saved as drafts for editorial review before publication.</p>
+    </div>
+</section>
+
+<section class="form-section">
+    <form class="content-form" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label for="headline">Headline</label>
+        <input id="headline" name="headline" type="text" maxlength="200" required>
+
+        <label for="author">Journalist name</label>
+        <input id="author" name="author" type="text" maxlength="100" required>
+
+        <label for="reported_date">Report date</label>
+        <input id="reported_date" name="reported_date" type="date" value="{{ today }}" required>
+
+        <label for="program_id">Related show or program (optional)</label>
+        <select id="program_id" name="program_id">
+            <option value="">Not linked to a specific program</option>
+            {% for program in programs %}
+                <option value="{{ program.id }}">{{ program.title }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="source_url">Source link (optional)</label>
+        <input id="source_url" name="source_url" type="url" maxlength="2048" placeholder="https://example.com/report">
+
+        <label for="body">Report</label>
+        <textarea id="body" name="body" rows="10" maxlength="20000" required></textarea>
+
+        <button class="btn btn-primary" type="submit">Save Draft for Review</button>
+    </form>
+</section>
+{% endblock %}
