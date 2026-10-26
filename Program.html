@@ -30,9 +30,56 @@
             </div>
         </div>
 
-        <p id="program-results" class="program-results" aria-live="polite">Loading programming…</p>
+        <p id="program-results" class="program-results" aria-live="polite">Program schedule</p>
         <div id="all-programs" class="programs-grid" aria-live="polite">
-            <div class="loading">Loading programs...</div>
+            {% for program in programs %}
+                <article
+                    class="program-card"
+                    data-status="{{ program.status }}"
+                    data-category-id="{{ program.category_id }}"
+                >
+                    {% if program.poster %}
+                        <img
+                            class="program-poster"
+                            src="{{ program.poster }}"
+                            alt="Poster for {{ program.title }}"
+                            loading="lazy"
+                            decoding="async"
+                        >
+                    {% else %}
+                        <div class="program-art {{ program.status }}" aria-hidden="true">
+                            <i class="fas {{ program.icon or 'fa-radio' }}"></i>
+                        </div>
+                    {% endif %}
+                    <div class="card-body">
+                        {% if program.status == 'live' %}
+                            <span class="badge live">Facebook broadcast</span>
+                        {% else %}
+                            <span class="badge format">Programming focus</span>
+                        {% endif %}
+                        <h3>{{ program.title }}</h3>
+                        <p>{{ program.description }}</p>
+                        <div class="meta">
+                            <span><i class="fas fa-user" aria-hidden="true"></i> {{ program.host }}</span>
+                            {% if program.time %}
+                                <span><i class="fas fa-clock" aria-hidden="true"></i> {{ program.time }}</span>
+                            {% endif %}
+                            <span><i class="fas fa-tag" aria-hidden="true"></i> {{ program.category }}</span>
+                        </div>
+                        <a
+                            class="program-channel-link"
+                            href="{{ program.url or facebook_page_url }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <i class="fab fa-facebook" aria-hidden="true"></i>
+                            {{ program.action_label or 'Explore RCM Radio on Facebook' }}
+                        </a>
+                    </div>
+                </article>
+            {% else %}
+                <p class="loading">No programming information is available.</p>
+            {% endfor %}
         </div>
         <div class="platform-callout">
             <h2>Follow RCM Radio</h2>
@@ -52,9 +99,9 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        loadAllPrograms();
         setupFilters();
         setupProgramSearch();
+        filterProgramCards();
     });
 </script>
 {% endblock %}

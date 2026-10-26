@@ -77,54 +77,41 @@ async function loadUpcoming() {
     }
 }
 
-// ========== LOAD ALL PROGRAMS ==========
-let allPrograms = [];
+// ========== FILTER SERVER-RENDERED PROGRAMS ==========
 let activeProgramFilter = 'all';
 
-async function loadAllPrograms() {
-    try {
-        const res = await fetch('/api/programs');
-        if (!res.ok) {
-            throw new Error(`Could not load RCM Radio programming (${res.status}).`);
-        }
-        allPrograms = await res.json();
-        filterAndRenderPrograms();
-    } catch (err) {
-        console.error(err);
-        const container = document.getElementById('all-programs');
-        if (container) {
-            container.innerHTML = '<p class="loading">Could not load programming. Please try again later.</p>';
-        }
-    }
-}
-
-function renderPrograms(programs) {
+function filterProgramCards() {
     const container = document.getElementById('all-programs');
     if (!container) {
         return;
     }
+
+    const query = document.getElementById('program-search')?.value.trim().toLocaleLowerCase() || '';
+    const cards = container.querySelectorAll('.program-card');
+    let visibleCount = 0;
+    cards.forEach(card => {
+        const matchesFilter = activeProgramFilter === 'all'
+            || card.dataset.categoryId.startsWith(`${activeProgramFilter}-`);
+        const matchesSearch = card.textContent.toLocaleLowerCase().includes(query);
+        card.hidden = !(matchesFilter && matchesSearch);
+        if (!card.hidden) {
+            visibleCount += 1;
+        }
+    });
+
     const results = document.getElementById('program-results');
     if (results) {
-        results.textContent = `${programs.length} ${programs.length === 1 ? 'result' : 'results'}`;
+        results.textContent = `${visibleCount} ${visibleCount === 1 ? 'result' : 'results'}`;
     }
-    if (programs.length === 0) {
-        container.innerHTML = '<p class="loading">No programming matches. Try another filter or search.</p>';
-        return;
+    let emptyState = container.querySelector('.program-empty-state');
+    if (!visibleCount && !emptyState) {
+        emptyState = document.createElement('p');
+        emptyState.className = 'loading program-empty-state';
+        emptyState.textContent = 'No programming matches. Try another filter or search.';
+        container.append(emptyState);
+    } else if (visibleCount && emptyState) {
+        emptyState.remove();
     }
-    container.innerHTML = programs.map(p => createProgramCard(p)).join('');
-}
-
-function filterAndRenderPrograms() {
-    const searchInput = document.getElementById('program-search');
-    const query = searchInput ? searchInput.value.trim().toLocaleLowerCase() : '';
-    const filtered = allPrograms.filter(program => {
-        const matchesFilter = activeProgramFilter === 'all'
-            || program.category_id.startsWith(`${activeProgramFilter}-`);
-        const searchableText = `${program.title} ${program.host} ${program.time} ${program.description} ${program.category}`
-            .toLocaleLowerCase();
-        return matchesFilter && searchableText.includes(query);
-    });
-    renderPrograms(filtered);
 }
 
 // ========== FILTERS ==========
@@ -136,7 +123,7 @@ function setupFilters() {
             btn.classList.add('active');
             buttons.forEach(button => button.setAttribute('aria-pressed', String(button === btn)));
             activeProgramFilter = btn.dataset.filter || 'all';
-            filterAndRenderPrograms();
+            filterProgramCards();
         });
     });
 }
@@ -144,7 +131,7 @@ function setupFilters() {
 function setupProgramSearch() {
     const searchInput = document.getElementById('program-search');
     if (searchInput) {
-        searchInput.addEventListener('input', filterAndRenderPrograms);
+        searchInput.addEventListener('input', filterProgramCards);
     }
 }
 

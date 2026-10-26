@@ -451,7 +451,7 @@ def dashboard():
 
 @app.route("/programs")
 def programs():
-    return render_template("Program.html")
+    return render_template("Program.html", programs=database.get_programs())
 
 
 @app.route("/promotions")
@@ -855,7 +855,7 @@ application = app
 
 if __name__ == "__main__":
     print("\nRCM Radio Media Blog is running!")
-    print("Open http://127.0.0.1:5000 in your browser\n")
+    print("Open https://127.0.0.1:5000 in your browser\n")
     app.run(
         host="127.0.0.1",
         port=int(os.environ.get("PORT", "5000")),
