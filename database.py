@@ -45,7 +45,8 @@ class Database:
                     description TEXT NOT NULL,
                     icon TEXT NOT NULL,
                     url TEXT,
-                    action_label TEXT
+                    action_label TEXT,
+                    poster TEXT
                 );
                 CREATE TABLE IF NOT EXISTS accounts (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,31 +67,95 @@ class Database:
                     submitted_by INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
                     reported_date TEXT NOT NULL,
                     submitted_at TEXT NOT NULL,
-                    status TEXT NOT NULL CHECK (status IN ('draft', 'published'))
+                    status TEXT NOT NULL CHECK (status IN ('draft', 'published')),
+                    review_status TEXT NOT NULL DEFAULT 'pending'
+                        CHECK (review_status IN ('pending', 'approved', 'rejected')),
+                    review_note TEXT NOT NULL DEFAULT '',
+                    reviewed_by INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+                    reviewed_at TEXT
                 );
                 CREATE INDEX IF NOT EXISTS articles_status_date
                     ON articles (status, reported_date DESC, id DESC);
+                CREATE TABLE IF NOT EXISTS activity_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    created_at TEXT NOT NULL,
+                    actor_account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+                    actor_username TEXT NOT NULL,
+                    event_type TEXT NOT NULL,
+                    target_type TEXT NOT NULL DEFAULT '',
+                    target_id INTEGER,
+                    summary TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS activity_log_created_at
+                    ON activity_log (created_at DESC, id DESC);
                 CREATE TABLE IF NOT EXISTS app_metadata (
                     key TEXT PRIMARY KEY,
                     value TEXT NOT NULL
                 );
                 """
             )
+            article_columns = {
+                row["name"]
+                for row in connection.execute("PRAGMA table_info(articles)")
+            }
+            if "review_status" not in article_columns:
+                connection.execute(
+                    "ALTER TABLE articles ADD COLUMN review_status TEXT NOT NULL DEFAULT 'pending'"
+                )
+            if "review_note" not in article_columns:
+                connection.execute(
+                    "ALTER TABLE articles ADD COLUMN review_note TEXT NOT NULL DEFAULT ''"
+                )
+            if "reviewed_by" not in article_columns:
+                connection.execute(
+                    "ALTER TABLE articles ADD COLUMN reviewed_by INTEGER REFERENCES accounts(id) ON DELETE SET NULL"
+                )
+            if "reviewed_at" not in article_columns:
+                connection.execute("ALTER TABLE articles ADD COLUMN reviewed_at TEXT")
+            connection.execute(
+                """
+                UPDATE articles
+                SET review_status = 'approved',
+                    reviewed_at = COALESCE(reviewed_at, submitted_at)
+                WHERE status = 'published' AND review_status = 'pending'
+                """
+            )
+
+            program_columns = {
+                row["name"]
+                for row in connection.execute("PRAGMA table_info(programs)")
+            }
+            if "poster" not in program_columns:
+                connection.execute("ALTER TABLE programs ADD COLUMN poster TEXT")
+
             for program in programs:
                 connection.execute(
                     """
-                    INSERT OR IGNORE INTO programs (
+                    INSERT INTO programs (
                         id, title, host, time, status, category, category_id,
-                        description, icon, url, action_label
+                        description, icon, url, action_label, poster
                     ) VALUES (
                         :id, :title, :host, :time, :status, :category, :category_id,
-                        :description, :icon, :url, :action_label
+                        :description, :icon, :url, :action_label, :poster
                     )
+                    ON CONFLICT(id) DO UPDATE SET
+                        title = excluded.title,
+                        host = excluded.host,
+                        time = excluded.time,
+                        status = excluded.status,
+                        category = excluded.category,
+                        category_id = excluded.category_id,
+                        description = excluded.description,
+                        icon = excluded.icon,
+                        url = excluded.url,
+                        action_label = excluded.action_label,
+                        poster = excluded.poster
                     """,
                     {
                         **program,
                         "url": program.get("url"),
                         "action_label": program.get("action_label"),
+                        "poster": program.get("poster"),
                     },
                 )
 
@@ -192,7 +257,7 @@ class Database:
             rows = connection.execute(query, parameters).fetchall()
         return [dict(row) for row in rows]
 
-    def create_article(self, article: dict) -> int:
+    def create_article(self, article: dict, actor_username: str) -> int:
         with self.connect() as connection:
             cursor = connection.execute(
                 """
@@ -208,15 +273,151 @@ class Database:
             )
             if cursor.lastrowid is None:
                 raise RuntimeError("SQLite did not return the new article ID.")
+            connection.execute(
+                """
+                INSERT INTO activity_log (
+                    created_at, actor_account_id, actor_username, event_type,
+                    target_type, target_id, summary
+                ) VALUES (?, ?, ?, 'article_submitted', 'article', ?, ?)
+                """,
+                (
+                    article["submitted_at"],
+                    article["submitted_by"],
+                    actor_username,
+                    cursor.lastrowid,
+                    f'Submitted report "{article["headline"]}" for editorial review.',
+                ),
+            )
             return cursor.lastrowid
 
-    def publish_article(self, article_id: int) -> bool:
+    def publish_article(
+        self, article_id: int, actor: dict, reviewed_at: str
+    ) -> bool:
         with self.connect() as connection:
-            cursor = connection.execute(
-                "UPDATE articles SET status = 'published' WHERE id = ? AND status = 'draft'",
+            article = connection.execute(
+                "SELECT headline FROM articles WHERE id = ? AND review_status = 'pending'",
                 (article_id,),
+            ).fetchone()
+            if article is None:
+                return False
+            cursor = connection.execute(
+                """
+                UPDATE articles
+                SET status = 'published', review_status = 'approved',
+                    review_note = '', reviewed_by = ?, reviewed_at = ?
+                WHERE id = ? AND status = 'draft' AND review_status = 'pending'
+                """,
+                (actor["id"], reviewed_at, article_id),
             )
-            return cursor.rowcount == 1
+            if cursor.rowcount != 1:
+                return False
+            self._insert_activity(
+                connection,
+                reviewed_at,
+                actor["id"],
+                actor["username"],
+                "article_approved",
+                "article",
+                article_id,
+                f'Approved and published report "{article["headline"]}".',
+            )
+            return True
+
+    def reject_article(
+        self, article_id: int, actor: dict, reviewed_at: str, reason: str
+    ) -> bool:
+        with self.connect() as connection:
+            article = connection.execute(
+                "SELECT headline FROM articles WHERE id = ? AND review_status = 'pending'",
+                (article_id,),
+            ).fetchone()
+            if article is None:
+                return False
+            cursor = connection.execute(
+                """
+                UPDATE articles
+                SET review_status = 'rejected', review_note = ?,
+                    reviewed_by = ?, reviewed_at = ?
+                WHERE id = ? AND status = 'draft' AND review_status = 'pending'
+                """,
+                (reason, actor["id"], reviewed_at, article_id),
+            )
+            if cursor.rowcount != 1:
+                return False
+            self._insert_activity(
+                connection,
+                reviewed_at,
+                actor["id"],
+                actor["username"],
+                "article_rejected",
+                "article",
+                article_id,
+                f'Rejected report "{article["headline"]}": {reason}',
+            )
+            return True
+
+    @staticmethod
+    def _insert_activity(
+        connection: sqlite3.Connection,
+        created_at: str,
+        actor_account_id: int | None,
+        actor_username: str,
+        event_type: str,
+        target_type: str,
+        target_id: int | None,
+        summary: str,
+    ) -> None:
+        connection.execute(
+            """
+            INSERT INTO activity_log (
+                created_at, actor_account_id, actor_username, event_type,
+                target_type, target_id, summary
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                created_at,
+                actor_account_id,
+                actor_username,
+                event_type,
+                target_type,
+                target_id,
+                summary,
+            ),
+        )
+
+    def record_activity(
+        self,
+        created_at: str,
+        actor_account_id: int | None,
+        actor_username: str,
+        event_type: str,
+        summary: str,
+        target_type: str = "",
+        target_id: int | None = None,
+    ) -> None:
+        with self.connect() as connection:
+            self._insert_activity(
+                connection,
+                created_at,
+                actor_account_id,
+                actor_username,
+                event_type,
+                target_type,
+                target_id,
+                summary,
+            )
+
+    def get_activity(self, limit: int = 250) -> list[dict]:
+        with self.connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT * FROM activity_log
+                ORDER BY created_at DESC, id DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+        return [dict(row) for row in rows]
 
     def get_account(self, account_id: int, active_only: bool = False) -> dict | None:
         query = "SELECT * FROM accounts WHERE id = ?"

@@ -12,12 +12,15 @@ function createProgramCard(program, large = false) {
     const time = program.time
         ? `<span><i class="fas fa-clock"></i> ${program.time}</span>`
         : '';
+    const artwork = program.poster
+        ? `<img class="program-poster" src="${program.poster}" alt="Poster for ${program.title}" loading="lazy" decoding="async">`
+        : `<div class="program-art ${statusClass}" aria-hidden="true">
+                <i class="fas ${program.icon || 'fa-radio'}"></i>
+            </div>`;
 
     return `
         <div class="program-card ${large ? 'large' : ''}" data-status="${program.status}">
-            <div class="program-art ${statusClass}" aria-hidden="true">
-                <i class="fas ${program.icon || 'fa-radio'}"></i>
-            </div>
+            ${artwork}
             <div class="card-body">
                 <span class="badge ${statusClass}">${statusLabel}</span>
                 <h3>${program.title}</h3>
@@ -116,10 +119,8 @@ function filterAndRenderPrograms() {
     const query = searchInput ? searchInput.value.trim().toLocaleLowerCase() : '';
     const filtered = allPrograms.filter(program => {
         const matchesFilter = activeProgramFilter === 'all'
-            || (activeProgramFilter === 'live'
-                ? program.status === 'live'
-                : program.category_id === activeProgramFilter);
-        const searchableText = `${program.title} ${program.description} ${program.category}`
+            || program.category_id.startsWith(`${activeProgramFilter}-`);
+        const searchableText = `${program.title} ${program.host} ${program.time} ${program.description} ${program.category}`
             .toLocaleLowerCase();
         return matchesFilter && searchableText.includes(query);
     });

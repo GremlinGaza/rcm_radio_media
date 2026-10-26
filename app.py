@@ -33,6 +33,47 @@ FACEBOOK_PAGE_URL = "https://www.facebook.com/p/RCM-RADIO-61585037325434/"
 FACEBOOK_LIVE_URL = (
     "https://www.facebook.com/61585037325434/videos/1597956511645496/"
 )
+PROMOTIONS = [
+    {
+        "name": "RCM Welfare Association",
+        "description": "A community and family welfare association.",
+        "poster": "rcm-welfare-association.jpeg",
+        "links": [{"label": "Call 0794 790 000", "url": "tel:+254794790000"}],
+    },
+    {
+        "name": "RCM College",
+        "description": "College courses and CAT support.",
+        "poster": "rcm-college.jpeg",
+        "links": [
+            {"label": "Call 0719 525 000", "url": "tel:+254719525000"},
+            {"label": "Call 0793 555 000", "url": "tel:+254793555000"},
+        ],
+    },
+    {
+        "name": "Tric Gaming Hub",
+        "description": "Gaming events and competitions.",
+        "poster": "tric-gaming-hub.jpeg",
+        "links": [{"label": "Call 0798 963 058", "url": "tel:+254798963058"}],
+    },
+    {
+        "name": "RCM Publishers",
+        "description": "Educational books and learning resources.",
+        "poster": "rcm-publishers.jpeg",
+        "links": [
+            {"label": "Call 0719 525 000", "url": "tel:+254719525000"},
+            {"label": "Call 0793 555 000", "url": "tel:+254793555000"},
+        ],
+    },
+    {
+        "name": "Aura & Co",
+        "description": "Accounting and auditing courses.",
+        "poster": "aura-and-co.jpeg",
+        "links": [
+            {"label": "Visit aura-cpa.com", "url": "https://aura-cpa.com"},
+            {"label": "Call 0769 111 000", "url": "tel:+254769111000"},
+        ],
+    },
+]
 YOUTUBE_FEED_URL = (
     "https://www.youtube.com/feeds/videos.xml?"
     f"channel_id={YOUTUBE_CHANNEL_ID}"
@@ -137,6 +178,25 @@ def get_session_account():
     if account_id is None:
         return None
     return database.get_account(account_id, active_only=True)
+
+
+def log_activity(
+    event_type: str,
+    actor_username: str,
+    summary: str,
+    actor_account_id: int | None = None,
+    target_type: str = "",
+    target_id: int | None = None,
+) -> None:
+    database.record_activity(
+        datetime.now(timezone.utc).isoformat(),
+        actor_account_id,
+        actor_username,
+        event_type,
+        summary,
+        target_type,
+        target_id,
+    )
 
 
 @app.context_processor
@@ -276,65 +336,101 @@ def sequence_channel_videos(videos):
     return sequence
 
 
-# ====================== VERIFIED RCM RADIO PROGRAMMING ======================
+# ====================== RCM RADIO PROGRAMMING ======================
 PROGRAMS = [
     {
         "id": 1,
         "title": "RCM BREAKFAST",
-        "host": "NOAH ESOKON",
-        "time": "06:00 - 10:00",
+        "host": "Noah Esokon",
+        "time": "6:00 AM - 10:00 AM",
         "status": "live",
-        "category": "Live broadcast",
-        "category_id": "live",
-        "description": "Tune in to RCM Radio's live broadcast .",
+        "category": "Weekdays",
+        "category_id": "weekday-breakfast",
+        "description": "Weekday breakfast show on RCM Radio.",
         "icon": "fa-tower-broadcast",
         "url": FACEBOOK_LIVE_URL,
         "action_label": "Open broadcast on Facebook",
+        "poster": "/static/images/program-posters/rcm-breakfast.jpg",
     },
     {
         "id": 2,
         "title": "GUMZO 254",
-        "host": "GLORIA BRIDGET AND RAEL JEPNGETICH ",
-        "time": "10:00 - 13:00",
+        "host": "Gloria Bridget and Rael Jepngetich",
+        "time": "10:00 AM - 1:00 PM",
         "status": "format",
-        "category": "News",
-        "category_id": "news",
-        "description": "The latest news and stories from the community.",
+        "category": "Weekdays",
+        "category_id": "weekday-gumzo-254",
+        "description": "Weekday conversations and stories with Gloria Bridget and Rael Jepngetich.",
         "icon": "fa-newspaper",
     },
     {
         "id": 3,
         "title": "VIBES MTAANI",
-        "host": "JARED KWE AND CRAFT YUN",
-        "time": "13:00 - 16:00",
+        "host": "Jared Kwe and Craft Yun",
+        "time": "1:00 PM - 4:00 PM",
         "status": "format",
-        "category": "Trending stories",
-        "category_id": "trending",
-        "description": "Trending stories and conversations that matter to listeners.",
+        "category": "Weekdays",
+        "category_id": "weekday-vibes-mtaani",
+        "description": "Weekday trending stories and conversations with Jared Kwe and Craft Yun.",
         "icon": "fa-arrow-trend-up",
+        "poster": "/static/images/program-posters/vibes-mtaani.jpg",
     },
     {
         "id": 4,
-        "title": "RCM DRIVE ",
-        "host": "FESTUS ANDAYI ",
-        "time": "16:00 - 18:00",
+        "title": "RCM DRIVE",
+        "host": "Festus Andayi",
+        "time": "4:00 PM - 6:00 PM",
         "status": "format",
-        "category": "Business",
-        "category_id": "business",
-        "description": "Business insights to inform and inspire the community.",
+        "category": "Weekdays",
+        "category_id": "weekday-rcm-drive",
+        "description": "Weekday drive-time show with Festus Andayi.",
         "icon": "fa-briefcase",
     },
     {
         "id": 5,
         "title": "AROUND THE WORLD",
-        "host": "OLILO AND PAPSI ",
-        "time": "18:00 - 21:00",
+        "host": "Olilo and Papsi",
+        "time": "6:00 PM - 9:00 PM",
         "status": "format",
-        "category": "Music",
-        "category_id": "music",
-        "description": "Hit music around the clock, as described on RCM Radio's Facebook page.",
+        "category": "Weekdays",
+        "category_id": "weekday-around-the-world",
+        "description": "Weekday evening show with Olilo and Papsi.",
         "icon": "fa-music",
-    }
+    },
+    {
+        "id": 6,
+        "title": "RANDOM SATO",
+        "host": "Noah Esokon",
+        "time": "8:00 AM - 10:00 AM",
+        "status": "format",
+        "category": "Saturday",
+        "category_id": "saturday-random-sato",
+        "description": "Saturday morning show with Noah Esokon.",
+        "icon": "fa-sun",
+    },
+    {
+        "id": 7,
+        "title": "WEEKEND WRAP UP",
+        "host": "Gloria Bridget and Rael Jepngetich",
+        "time": "10:00 AM - 1:00 PM",
+        "status": "format",
+        "category": "Saturday",
+        "category_id": "saturday-weekend-wrap-up",
+        "description": "Saturday weekend wrap-up with Gloria Bridget and Rael Jepngetich.",
+        "icon": "fa-calendar-week",
+    },
+    {
+        "id": 8,
+        "title": "TAARAB TARATIBU",
+        "host": "Festus Andayi",
+        "time": "2:00 PM - 4:00 PM",
+        "status": "format",
+        "category": "Sunday",
+        "category_id": "sunday-taarab-taratibu",
+        "description": "Sunday taarab show with Festus Andayi.",
+        "icon": "fa-music",
+        "poster": "/static/images/program-posters/taarab-taratibu.jpg",
+    },
 ]
 
 database.initialize(PROGRAMS, NEWS_STORE_PATH, ACCOUNTS_STORE_PATH)
@@ -356,6 +452,11 @@ def dashboard():
 @app.route("/programs")
 def programs():
     return render_template("Program.html")
+
+
+@app.route("/promotions")
+def promotions():
+    return render_template("Promotions.html", promotions=PROMOTIONS)
 
 
 @app.route("/news")
@@ -390,6 +491,14 @@ def initial_setup():
             )
             if account_id is None:
                 return redirect(url_for("journalist_login"))
+            log_activity(
+                "account_created",
+                username,
+                "Created the initial editor account.",
+                account_id,
+                "account",
+                account_id,
+            )
             flash("First editor account created. Sign in to manage accounts.", "success")
             return redirect(url_for("journalist_login"))
 
@@ -414,6 +523,14 @@ def journalist_login():
             else None
         )
         if account and account["active"] and verify_password(account, password):
+            log_activity(
+                "login_success",
+                account["username"],
+                f"Signed in as {account['role']}.",
+                account["id"],
+                "account",
+                account["id"],
+            )
             session.clear()
             session["account_id"] = account["id"]
             session["user_role"] = account["role"]
@@ -421,6 +538,12 @@ def journalist_login():
             destination = "editor" if account["role"] == "editor" else "journalist_submit"
             return redirect(url_for(destination))
         else:
+            attempted_username = username[:64] or "(blank username)"
+            log_activity(
+                "login_failed",
+                attempted_username,
+                f"Failed sign-in attempt for username '{attempted_username}'.",
+            )
             flash("The username or password is incorrect.", "error")
 
     return render_template(
@@ -433,6 +556,14 @@ def journalist_login():
 @require_journalist
 def journalist_logout():
     validate_csrf()
+    log_activity(
+        "logout",
+        g.account["username"],
+        "Signed out.",
+        g.account["id"],
+        "account",
+        g.account["id"],
+    )
     session.clear()
     flash("You have signed out.", "success")
     return redirect(url_for("index"))
@@ -480,7 +611,8 @@ def journalist_submit():
                         "reported_date": reported_date,
                         "submitted_at": datetime.now(timezone.utc).isoformat(),
                         "status": "draft",
-                    }
+                    },
+                    g.account["username"],
                 )
                 flash("Report saved as a draft for editor review.", "success")
                 return redirect(url_for("editor"))
@@ -500,12 +632,19 @@ def editor():
         article["program_title"] = program_title(article["program_id"])
     articles.sort(
         key=lambda article: (
-            article["status"] != "draft",
+            article["review_status"] != "pending",
+            article["review_status"] == "approved",
             article["reported_date"],
             article["id"],
         )
     )
     return render_template("Editor.html", articles=articles)
+
+
+@app.route("/editor/activity")
+@require_editor
+def editor_activity():
+    return render_template("Activity.html", events=database.get_activity())
 
 
 @app.route("/editor/accounts", methods=["GET", "POST"])
@@ -533,6 +672,14 @@ def manage_accounts():
             if account_id is None:
                 flash("That username is already in use.", "error")
             else:
+                log_activity(
+                    "account_created",
+                    g.account["username"],
+                    f"Created {role} account '{username}'.",
+                    g.account["id"],
+                    "account",
+                    account_id,
+                )
                 flash(f"{role.title()} account created.", "success")
                 return redirect(url_for("manage_accounts"))
 
@@ -556,6 +703,7 @@ def update_account(account_id):
     salt = password_hash = None
     if password:
         salt, password_hash = hash_password(password)
+    previous_account = database.get_account(account_id)
     result = database.update_account(
         account_id,
         username,
@@ -571,6 +719,16 @@ def update_account(account_id):
     elif result == "last_editor":
         flash("Keep at least one active editor account.", "error")
     else:
+        if previous_account:
+            log_activity(
+                "account_updated",
+                g.account["username"],
+                f"Updated account '{previous_account['username']}' to '{username}' "
+                f"with role {role}; active={active}.",
+                g.account["id"],
+                "account",
+                account_id,
+            )
         signing_out = account_id == g.account["id"] and (
             not active or role != "editor"
         )
@@ -587,9 +745,30 @@ def update_account(account_id):
 @require_editor
 def publish_article(article_id):
     validate_csrf()
-    if not database.publish_article(article_id):
+    if not database.publish_article(
+        article_id, g.account, datetime.now(timezone.utc).isoformat()
+    ):
         abort(404)
     flash("Report published on the RCM news page.", "success")
+    return redirect(url_for("editor"))
+
+
+@app.route("/editor/reject/<int:article_id>", methods=["POST"])
+@require_editor
+def reject_article(article_id):
+    validate_csrf()
+    reason = request.form.get("reason", "").strip()
+    if not reason or len(reason) > 1000:
+        flash("Enter a rejection reason of no more than 1,000 characters.", "error")
+        return redirect(url_for("editor"))
+    if not database.reject_article(
+        article_id,
+        g.account,
+        datetime.now(timezone.utc).isoformat(),
+        reason,
+    ):
+        abort(404)
+    flash("Report rejected. The reason is saved for editorial history.", "success")
     return redirect(url_for("editor"))
 
 
@@ -609,6 +788,24 @@ def brand_logo():
         os.path.join(app.root_path, "static", "images"),
         "rcm-radio-logo.png",
         mimetype="image/png",
+    )
+
+
+@app.route("/static/images/program-posters/<path:filename>")
+def program_poster(filename):
+    return send_from_directory(
+        os.path.join(app.root_path, "static", "images", "program-posters"),
+        filename,
+        mimetype="image/jpeg",
+    )
+
+
+@app.route("/static/images/promotions/<path:filename>")
+def promotion_poster(filename):
+    return send_from_directory(
+        os.path.join(app.root_path, "static", "images", "promotions"),
+        filename,
+        mimetype="image/jpeg",
     )
 
 

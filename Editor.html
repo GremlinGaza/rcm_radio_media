@@ -5,7 +5,7 @@
 <section class="page-header">
     <div class="container">
         <h1>Editorial Desk</h1>
-        <p>Review drafts and publish approved reports.</p>
+        <p>Review submitted reports, approve them for publication, or reject them with feedback.</p>
     </div>
 </section>
 
@@ -15,12 +15,13 @@
             <a href="{{ url_for('journalist_submit') }}" class="btn btn-primary">Write a Report</a>
             <a href="{{ url_for('news') }}" class="btn btn-secondary">View Published News</a>
             <a href="{{ url_for('manage_accounts') }}" class="btn btn-secondary">Manage Accounts</a>
+            <a href="{{ url_for('editor_activity') }}" class="btn btn-secondary">Activity History</a>
         </div>
         {% if articles %}
             <div class="article-grid">
                 {% for article in articles %}
                     <article class="article-card">
-                        <p class="article-date">{{ article.reported_date }} · {{ article.status|title }}</p>
+                        <p class="article-date">{{ article.reported_date }} · {{ article.review_status|title }}</p>
                         <h2>{{ article.headline }}</h2>
                         {% if article.program_title %}
                             <p class="article-program">{{ article.program_title }}</p>
@@ -30,11 +31,24 @@
                             <p><a href="{{ article.source_url }}" target="_blank" rel="noopener noreferrer">View report source</a></p>
                         {% endif %}
                         <p class="article-byline">By {{ article.author }} · Submitted {{ article.submitted_at }}</p>
-                        {% if article.status == 'draft' %}
-                            <form action="{{ url_for('publish_article', article_id=article.id) }}" method="post">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                                <button class="btn btn-primary" type="submit">Approve &amp; Publish</button>
-                            </form>
+                        {% if article.review_status == 'pending' %}
+                            <div class="review-actions">
+                                <form action="{{ url_for('publish_article', article_id=article.id) }}" method="post">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <button class="btn btn-primary" type="submit">Approve &amp; Publish</button>
+                                </form>
+                                <form class="review-reject-form" action="{{ url_for('reject_article', article_id=article.id) }}" method="post">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <label for="rejection-reason-{{ article.id }}">Reason for rejection</label>
+                                    <textarea id="rejection-reason-{{ article.id }}" name="reason" maxlength="1000" rows="3" required></textarea>
+                                    <button class="btn btn-reject" type="submit">Reject Report</button>
+                                </form>
+                            </div>
+                        {% elif article.review_status == 'rejected' %}
+                            <p class="review-note"><strong>Rejection reason:</strong> {{ article.review_note }}</p>
+                            <p class="article-date">Reviewed {{ article.reviewed_at }}</p>
+                        {% elif article.review_status == 'approved' %}
+                            <p class="article-date">Approved {{ article.reviewed_at }}</p>
                         {% endif %}
                     </article>
                 {% endfor %}

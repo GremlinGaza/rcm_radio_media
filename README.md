@@ -57,9 +57,12 @@ Back up the entire `instance` directory securely. It contains the database and
 Flask session signing key, and should not be shared publicly or committed.
 
 - **Journalist:** can submit reports for editorial review.
-- **Editor:** can review and publish reports, and open **Manage Accounts** to
-  create journalist/editor accounts, change usernames and roles, reset
-  passwords, or deactivate accounts.
+- **Editor:** can approve and publish reports or reject them with a recorded
+  reason. Editors can open **Manage Accounts** to create journalist/editor
+  accounts, change usernames and roles, reset passwords, or deactivate
+  accounts. **Activity History** is editor-only and shows the latest 250
+  successful/failed sign-ins, sign-outs, report submissions and review
+  decisions, and account changes.
 
 Only editors can manage accounts. Accounts cannot be created from public
 registration. At least one active editor must remain. Deactivating or changing
@@ -68,16 +71,24 @@ the role of an account immediately removes its access on the next request.
 Use unique usernames and strong passwords of at least 12 characters. If the
 database is lost, account access must be bootstrapped again; published reports,
 drafts, accounts, and programs are stored there.
+Rejected reports remain in the editorial desk with their rejection reason;
+they are not published or permanently deleted. Activity history does not record
+passwords or IP addresses.
 
 ## News and video workflow
 
 - Recent videos are fetched from the official RCM Media YouTube channel feed.
   Upload dates are shown, and titles containing a program name are labeled with
   that program.
-- The RCM Radio program page uses the station's public Facebook description
-  for its news, trending stories, business insights, and hit-music focus. The
-  page does not publish a named-show schedule, so the site does not invent show
-  names or airtimes. Follow the Facebook page for current broadcast updates.
+- The RCM Radio program page lists the weekday schedule (RCM Breakfast,
+  Gumzo 254, Vibes Mtaani, RCM Drive, and Around the World) and weekend shows
+  (Random Sato and Weekend Wrap Up on Saturday; Taarab Taratibu on Sunday).
+  Available posters are shown on the matching program cards; other cards keep
+  their icon artwork until matching posters are provided. Follow the Facebook
+  page for broadcast updates.
+- The Partners & Promotions page features the supplied RCM partner posters and
+  the website or phone contact links printed on them.
 - Journalists can submit dated reports, add an optional source link, and
   associate reports with shows or programs.
-- Reports remain drafts until an editor publishes them on the News page.
+- Submitted reports remain pending until an editor approves them for the News
+  page or rejects them with feedback.
