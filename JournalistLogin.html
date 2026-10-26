@@ -10,20 +10,64 @@
 </section>
 
 <section class="form-section">
-    <form class="content-form" method="post">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        {% if not accounts_exist %}
+    {% if not accounts_exist %}
+        <div class="content-form">
             <p class="form-notice error">
                 No accounts exist yet. Create the first editor account to set up
                 the newsroom.
             </p>
             <a class="btn btn-primary" href="{{ url_for('initial_setup') }}">Create First Editor Account</a>
-        {% endif %}
-        <label for="email">Username</label>
-        <input id="email" name="email" type="text" maxlength="64" autocomplete="email" required>
-        <label for="password">Password</label>
-        <input id="password" name="password" type="password" maxlength="1024" autocomplete="current-password" required>
-        <button class="btn btn-primary" type="submit">Sign In</button>
-    </form>
+        </div>
+    {% else %}
+        <form class="content-form login-form" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+            <label for="email">Email</label>
+            <input
+                id="email"
+                name="email"
+                type="email"
+                maxlength="64"
+                autocomplete="email"
+                required
+            >
+
+            <label for="password">Password</label>
+            <input
+                id="password"
+                name="password"
+                type="password"
+                maxlength="1024"
+                autocomplete="current-password"
+                required
+            >
+
+            <button class="btn btn-primary" type="submit">Sign In</button>
+        </form>
+    {% endif %}
+</section>
+{% endblock %}
+
+                maxlength="64"
+                autocomplete="username"
+                autocapitalize="none"
+                spellcheck="false"
+                required
+                autofocus
+            >
+
+            <label for="password">Password</label>
+            <input
+                id="password"
+                name="password"
+                type="password"
+                maxlength="1024"
+                autocomplete="current-password"
+                required
+            >
+
+            <button class="btn btn-primary" type="submit">Sign In</button>
+        </form>
+    {% endif %}
 </section>
 {% endblock %}
